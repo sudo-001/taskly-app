@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:taskly/models/task.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({super.key});
@@ -52,11 +53,11 @@ class _HomePageState extends State<HomePage> {
     return FutureBuilder(
       future: Hive.openBox("tasks"),
       builder: (BuildContext _context, AsyncSnapshot _snapshot) {
-        if (_snapshot.connectionState == ConnectionState.done) {
+        if (_snapshot.hasData) {
           _box = _snapshot.data;
           return _listView();
         } else {
-          return LinearProgressIndicator(
+          return const LinearProgressIndicator(
             color: Colors.green,
           );
         }
@@ -65,20 +66,47 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _listView() {
-    return ListView(
-      children: [
-        ListTile(
-            title: Text(
-              "Go to market",
-              style: TextStyle(decoration: TextDecoration.lineThrough),
-            ),
-            subtitle: Text(DateTime.now().toString()),
-            trailing: Icon(
-              Icons.check_box_outlined,
-              color: Colors.green,
-            ))
-      ],
-    );
+    // On recupère tout les élément contenus dans notre _box
+    List tasks = _box!.values.toList();
+
+    return ListView.builder(
+        itemCount: tasks.length,
+        itemBuilder: (BuildContext _context, int _index) {
+          var _task = Task.fromMap(tasks[_index]);
+
+          return ListTile(
+              onLongPress: () {
+                setState(() {
+                  _box!.deleteAt(_index);
+                });
+              },
+              onTap: () {
+                setState(() {
+                  _task.isDone = !_task.isDone;
+                  _box!.putAt(_index, _task.toMap());
+                });
+              },
+              title: Text(
+                _task.content,
+                style: _task.isDone == true
+                    ? const TextStyle(decoration: TextDecoration.lineThrough)
+                    : null,
+              ),
+              subtitle: Text(_task.timestamp.toString()),
+              trailing: IconButton(
+                onPressed: () {
+                  setState(() {
+                    _task.isDone = !_task.isDone;
+                    _box!.putAt(_index, _task.toMap());
+                    
+                  });
+                },
+                icon: Icon(_task.isDone == true
+                    ? Icons.check_box_outlined
+                    : Icons.check_box_outline_blank),
+                color: Colors.green,
+              ));
+        });
   }
 
   Widget _addTaskButton() {
@@ -98,7 +126,21 @@ class _HomePageState extends State<HomePage> {
         return AlertDialog(
           title: const Text("Add new Task"),
           content: TextField(
-            onSubmitted: (_value) {},
+            onSubmitted: (_value) {
+              if (_newTaskContent != null || _newTaskContent != '') {
+                var task = Task(
+                    content: _newTaskContent!,
+                    timestamp: DateTime.now(),
+                    isDone: false);
+                _box!.add(task.toMap());
+
+                setState(() {
+                  _newTaskContent = null;
+                });
+
+                Navigator.pop(context);
+              }
+            },
             onChanged: (_value) {
               setState(() {
                 _newTaskContent = _value;
