@@ -1,8 +1,9 @@
-# project1
+# Taskly App
 
-A new Flutter project.
+A new Flutter project to create a TODO app, using Hive database to store datas localy on the device.
 
-![Capture d’écran du 2023-08-08 02-54-42](https://github.com/sudo-001/goMoonApp/assets/81199537/32af52f4-45c7-48ce-ab6b-85c719a0c8f4)
+![Capture d’écran du 2023-08-15 06-45-50](https://github.com/sudo-001/taskly-app/assets/81199537/916937f6-bfcc-4544-a414-103585478f81)
+
 
 
 ## Getting Started
